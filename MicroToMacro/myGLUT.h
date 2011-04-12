@@ -13,4 +13,14 @@ void RenderCallback();
 void ReshapeCallback(int width, int height);
 void IdleCallback();
 
+struct myDimension3{
+	int x;
+	int y;
+	int z;
+};
+
+void myGLBox(double x, double y, double z);
+void myGLBox(myDimension3* dimensions);
+void myGLCylinder(double radius, double height, int sides);
+
 #endif //__myGLUT_h__

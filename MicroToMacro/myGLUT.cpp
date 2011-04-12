@@ -153,59 +153,70 @@ void RenderCallback()
 				}
 			glEnd();
 		}
-		NxShape *shape = *actor->getShapes();
-		switch(shape->getType()){
-			float glMat[16];
-			case NX_SHAPE_BOX:
-				// Render actor
-				glPushMatrix();
-				{				
-					actor->getGlobalPose().getColumnMajor44(glMat);
-					glMultMatrixf(glMat);
-					glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-					glutSolidCube(size_t(actor->userData));
-				}
-				glPopMatrix();
+		int nbShapes = actor->getNbShapes();
+		NxShape* const* shapes = actor->getShapes();
+		while(nbShapes--){
+			NxShape* shape = shapes[nbShapes];
+			switch(shape->getType()){
+				float glMat[16];
+				float glMat2[16];
+				case NX_SHAPE_BOX:
+					// Render actor
+					glPushMatrix();
+					{				
+						actor->getGlobalPose().getColumnMajor44(glMat);
+						glMultMatrixf(glMat);
+						shape->getLocalPose().getColumnMajor44(glMat2);
+						glMultMatrixf(glMat2);
+						glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+						myGLBox((myDimension3 *)shape->userData);
+					}
+					glPopMatrix();
 
-				// Render shadow
-				glPushMatrix();
-				{
-					const static float shadowMat[]={ 1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,1 };
-					glMultMatrixf(shadowMat);
-					glMultMatrixf(glMat);
-					glDisable(GL_LIGHTING);
-					glColor4f(0.1f, 0.2f, 0.3f, 1.0f);
-					glutSolidCube(size_t(actor->userData));
-					glEnable(GL_LIGHTING);
-				}
-				glPopMatrix();
-				break;
-			case NX_SHAPE_SPHERE:
-				// Render actor
-				glPushMatrix();
-				{
-					actor->getGlobalPose().getColumnMajor44(glMat);
-					glMultMatrixf(glMat);
-					glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-					glutSolidSphere(size_t(actor->userData),10, 10);
-				}
-				glPopMatrix();
+					// Render shadow
+					glPushMatrix();
+					{
+						const static float shadowMat[]={ 1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,1 };
+						glMultMatrixf(shadowMat);
+						glMultMatrixf(glMat);
+						glMultMatrixf(glMat2);
+						glDisable(GL_LIGHTING);
+						glColor4f(0.1f, 0.2f, 0.3f, 1.0f);
+						myGLBox((myDimension3 *)shape->userData);
+						glEnable(GL_LIGHTING);
+					}
+					glPopMatrix();
+					break;
+				case NX_SHAPE_SPHERE:
+					// Render actor
+					glPushMatrix();
+					{
+						actor->getGlobalPose().getColumnMajor44(glMat);
+						glMultMatrixf(glMat);
+						shape->getLocalPose().getColumnMajor44(glMat2);
+						glMultMatrixf(glMat2);
+						glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+						glutSolidSphere(size_t(shape->userData),10, 10);
+					}
+					glPopMatrix();
 
-				// Render shadow
-				glPushMatrix();
-				{
-					const static float shadowMat[]={ 1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,1 };
-					glMultMatrixf(shadowMat);
-					glMultMatrixf(glMat);
-					glDisable(GL_LIGHTING);
-					glColor4f(0.1f, 0.2f, 0.3f, 1.0f);
-					glutSolidSphere(size_t(actor->userData),10, 10);
-					glEnable(GL_LIGHTING);
-				}
-				glPopMatrix();
-				break;
-			default:
-				break;
+					// Render shadow
+					glPushMatrix();
+					{
+						const static float shadowMat[]={ 1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,1 };
+						glMultMatrixf(shadowMat);
+						glMultMatrixf(glMat);
+						glMultMatrixf(glMat2);
+						glDisable(GL_LIGHTING);
+						glColor4f(0.1f, 0.2f, 0.3f, 1.0f);
+						glutSolidSphere(size_t(shape->userData),10, 10);
+						glEnable(GL_LIGHTING);
+					}
+					glPopMatrix();
+					break;
+				default:
+					break;
+			}
 		}
 	}
 
@@ -226,4 +237,100 @@ void ReshapeCallback(int width, int height)
 void IdleCallback()
 {
 	glutPostRedisplay();
+}
+
+/**
+ * My Primitive Shapes for Open GL Presentation
+ */
+
+/**
+ * myGLBox : Draw Box (not only cube)
+ * @double x : Box Size (x-Axis)
+ * @double y : Box Size (y-Axis)
+ * @double z : Box Size (z-Axis)
+ * @return void
+ */
+void myGLBox(double x, double y, double z){
+	GLdouble vertex[][3] = {
+		{ -x, -y, -z },
+		{  x, -y, -z },
+		{  x,  y, -z },
+		{ -x,  y, -z },
+		{ -x, -y,  z },
+		{  x, -y,  z },
+		{  x,  y,  z },
+		{ -x,  y,  z }
+	};
+
+	const static int face[][4] = {
+		{ 0, 1, 2, 3 },
+		{ 1, 5, 6, 2 },
+		{ 5, 4, 7, 6 },
+		{ 4, 0, 3, 7 },
+		{ 4, 5, 1, 0 },
+		{ 3, 2, 6, 7 }
+	};
+
+	const static GLdouble normal[][3] = {
+		{ 0.0, 0.0,-1.0 },
+		{ 1.0, 0.0, 0.0 },
+		{ 0.0, 0.0, 1.0 },
+		{-1.0, 0.0, 0.0 },
+		{ 0.0,-1.0, 0.0 },
+		{ 0.0, 1.0, 0.0 }
+	};
+	int i, j;
+	glBegin(GL_QUADS);
+		for (j = 0; j < 6; ++j) {
+			glNormal3dv(normal[j]);
+			for (i = 4; --i >= 0;) {
+				glVertex3dv(vertex[face[j][i]]);
+			}
+		}
+	glEnd();
+}
+void myGLBox(myDimension3* dimensions){
+	myGLBox((double)dimensions->x, (double)dimensions->y, (double)dimensions->z);
+	return;
+}
+/**
+ * myGLCylinder : Draw Cylinder
+ * @double radius : Cylinder Radius
+ * @double height : Cylinder Height
+ * @double sides : Number of Divisions of Sides
+ * @return void
+ */
+void myGLCylinder(double radius, double height, int sides){
+	double step = 6.28318530717958647692 / (double)sides;
+	int i = 0;
+	/* è„ñ  */
+	glNormal3d(0.0, 1.0, 0.0);
+	glBegin(GL_TRIANGLE_FAN);
+		while (i < sides) {
+			double t = step * (double)i++;
+			glVertex3d(radius * sin(t), height, radius * cos(t));
+		}
+	glEnd();
+
+	/* íÍñ  */
+	glNormal3d(0.0, -1.0, 0.0);
+	glBegin(GL_TRIANGLE_FAN);
+		while (--i >= 0) {
+			double t = step * (double)i;
+			glVertex3d(radius * sin(t), -height, radius * cos(t));
+		}
+	glEnd();
+
+	/* ë§ñ  */
+	glBegin(GL_QUAD_STRIP);
+		while (i <= sides) {
+			double t = step * (double)i++;
+			double x = sin(t);
+			double z = cos(t);
+
+			glNormal3d(x, 0.0, z);
+			glVertex3f(radius * x, height, radius * z);
+			glVertex3f(radius * x, -height, radius * z);
+		}
+	glEnd();
 }

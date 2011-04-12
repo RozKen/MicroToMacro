@@ -21,6 +21,7 @@ bool InitScene();
 void CreateGroundPlane();
 void CreateBox(float w, float d, float h,float xInit, float yInit, float zInit);
 void CreateSphere(float r, float xInit, float yInit, float zInit);
+void CreateTumblingRobot(NxVec3 pos);
 
 	/*
 	 *	Global Variables
@@ -41,8 +42,9 @@ void main(int argc, char ** argv){
 	InitNx();
 	InitScene();
 	CreateGroundPlane();
-	CreateBox(10.0f, 10.0f, 10.0f, 10.0f, 60.0f, 10.0f);
-	CreateSphere(10.0f , -20.0f, 60.0f, 10.0f);
+	CreateBox(10.0f, 10.0f, 10.0f, 10.0f, 60.0f, 10.0f);	//20x20x20の箱を(10,60,10)へ
+	CreateSphere(10.0f , -50.0f, 60.0f, 10.0f);					//半径10の球を(-20, 60, 10)へ
+	CreateTumblingRobot(NxVec3(-20.0f, 50.0f, 0.0f));	//二腕ロボットを(-20, 50, 0)へ
 
 	cout << "===Viewport Navigation (Maya Style)===" <<endl;
 	cout << "Rotate: Right Drag" << endl;
@@ -55,6 +57,44 @@ void main(int argc, char ** argv){
 	 *	Render the Scene for each Simulate Time Steps
 	 */
 	glutMainLoop();
+}
+
+	/**
+	 * CreateTumblingRobot(NxVec3 pos);
+	 * @NxVec3 pos : Position Vector of this Robot
+	 * @return
+	 */
+void CreateTumblingRobot(NxVec3 pos){
+	if(pScene == NULL) return;
+	//Describe Body
+	NxBodyDesc bodyDesc;
+	bodyDesc.setToDefault();
+	//Describe Sphere
+	NxSphereShapeDesc sphereDesc;
+	sphereDesc.radius = 20;
+	sphereDesc.localPose.t = NxVec3( 0, 90, 0);
+	sphereDesc.userData = (void *)size_t(sphereDesc.radius);
+	//Describe Box
+	NxBoxShapeDesc boxDesc;
+	boxDesc.dimensions = NxVec3( 20.0f, 20.0f, 20.0f);
+	boxDesc.localPose.t = NxVec3( 0, 40, 0);
+	myDimension3* myD = new myDimension3;
+	myD->x = boxDesc.dimensions.x;
+	myD->y = boxDesc.dimensions.y;
+	myD->z = boxDesc.dimensions.z;
+	//boxDesc.userData = (void *)(boxDesc.dimensions);
+	boxDesc.userData = (void *)myD;
+	//Describe Actor
+	NxActorDesc actorDesc;
+	actorDesc.shapes.pushBack(&sphereDesc);
+	actorDesc.shapes.pushBack(&boxDesc);
+	actorDesc.body = &bodyDesc;
+	actorDesc.density = 10.0f;
+	actorDesc.globalPose.t = pos;
+	NxActor*pActor = pScene->createActor( actorDesc );
+	//pActor->userData = (void *)size_t((int)20);
+	return;
+	//TODO/////////////////////////////////////////////////////////////
 }
 	/**
 	 * CreateSphere(float r, float xInit, float yInit, float zInit)
@@ -77,13 +117,13 @@ void CreateSphere(float r, float xInit, float yInit, float zInit){
 	bodyDesc.angularDamping = 0.5f;	//転がり摩擦係数
 
 	sphereDesc.radius = r;									//球の半径を指定
+	sphereDesc.userData = (void *)size_t(sphereDesc.radius);
 	actorDesc.shapes.pushBack(&sphereDesc);	//球をアクターに追加
 	actorDesc.body = &bodyDesc;	//動的情報を指定
 	actorDesc.density = 100.0f;			//質量密度 (kg/m^3)
 	actorDesc.globalPose.t = NxVec3(xInit, yInit, zInit);	//Scene上の位置
 	//Set userData to NULL if you are not doing anyting with it.
 	NxActor*pActor = pScene->createActor( actorDesc );
-	pActor->userData = (void *)size_t((int)r);
 }
 	/**
 	 * CreateBox(float w, float d, float h,float xInit, float yInit, float zInit)
@@ -112,13 +152,18 @@ void CreateBox(float w, float d, float h,float xInit, float yInit, float zInit){
 	//Box Shape Descriptor
 	NxBoxShapeDesc boxDesc;
 	boxDesc.dimensions = NxVec3( w, d, h );	//20.0 x 20.0 x 20.0の直方体
+	myDimension3* myD = new myDimension3;
+	myD->x = boxDesc.dimensions.x;
+	myD->y = boxDesc.dimensions.y;
+	myD->z = boxDesc.dimensions.z;
+	//boxDesc.userData = (void *)(boxDesc.dimensions);	//wの2倍を一辺の長さとして表示
+	boxDesc.userData = (void *)myD;
 	actorDesc.shapes.pushBack( &boxDesc );	//ActorにBodyを登録
 	actorDesc.density = 100.0f;	//密度10.0
 	actorDesc.globalPose.t = NxVec3( xInit, yInit, zInit);		//初期位置(10.0, 10.0, 10.0)
 	
 	//Set userData to NULL if you are not doing anyting with it.
 	NxActor*pActor = pScene->createActor( actorDesc );
-	pActor->userData = (void *)size_t((int)w*2.0);
 }
 	/**
 	 * CreateGroundPlane(): Create Ground Plane
