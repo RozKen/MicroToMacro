@@ -19,7 +19,7 @@
 	 */
 NxPhysicsSDK* pPhysicsSDK = NULL;	//PhysX
 NxScene* pScene = NULL;					//Scene
-NxVec3 DefaultGravity(0,-9.8,0);			//Gravity
+NxVec3 DefaultGravity(0,-98,0);			//Gravity
 bool isSimulate = false;						//Flag for Simulation
 std::vector<TumblingRobots> robots;
 

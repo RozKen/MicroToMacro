@@ -72,14 +72,14 @@ void KeyboardCallback(unsigned char key, int x, int y)
 			break;
 		case '2':
 			for(int i = 0; i < n; i++){
-				robots[i].rightArm->addLocalTorque(NxVec3(5000000, 0, 0));
+				robots[i].rightArm->addLocalTorque(NxVec3(50000000, 0, 0));
 				//robots[i].rightArm->addLocalTorque(NxVec3(50000000000, 0, 0));
 			}
 			break;
 		case '3':
 			for(int i = 0; i < n; i++){
-				robots[i].leftArm->addLocalTorque(NxVec3(500000, 0, 0));
-				robots[i].rightArm->addLocalTorque(NxVec3(500000, 0, 0));
+				robots[i].leftArm->addLocalTorque(NxVec3(5000000, 0, 0));
+				robots[i].rightArm->addLocalTorque(NxVec3(5000000, 0, 0));
 				//robots[i].leftArm->addLocalTorque(NxVec3(50000000000, 0, 0));
 				//robots[i].rightArm->addLocalTorque(NxVec3(50000000000, 0, 0));
 				//robots[i].leftArm->addLocalForce(NxVec3(0, 0, 5000000));
