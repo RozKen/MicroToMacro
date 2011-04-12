@@ -34,9 +34,16 @@ void main(int argc, char ** argv){
 	InitNx();
 	InitScene();
 	CreateGroundPlane();
-	CreateBox(10.0f, 10.0f, 10.0f, 10.0f, 60.0f, 10.0f);	//20x20x20の箱を(10,60,10)へ
-	CreateSphere(10.0f , -50.0f, 60.0f, 10.0f);					//半径10の球を(-20, 60, 10)へ
-	CreateTumblingRobot(NxVec3(-20.0f, 50.0f, 0.0f));	//二腕ロボットを(-20, 50, 0)へ
+	//CreateBox(10.0f, 10.0f, 10.0f, 10.0f, 60.0f, 10.0f);	//20x20x20の箱を(10,60,10)へ
+	//CreateSphere(10.0f , -50.0f, 60.0f, 10.0f);					//半径10の球を(-20, 60, 10)へ
+	//CreateTumblingRobot(NxVec3(-20.0f, 50.0f, 0.0f));	//二腕ロボットを(-20, 50, 0)へ
+	int delta = 60;
+	int boundary = 500;
+	for(int i = -boundary; i < boundary + 1; i += delta){
+		for(int j = -boundary; j < boundary+1; j += delta){
+			CreateTumblingRobot(NxVec3(i, 50, j));
+		}
+	}
 
 	cout << "===Viewport Navigation (Maya Style)===" <<endl;
 	cout << "Rotate: Right Drag" << endl;

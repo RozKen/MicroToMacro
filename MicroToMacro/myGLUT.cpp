@@ -30,16 +30,16 @@ void MyGLInit(){
 	// Setup lighting
 	glEnable(GL_LIGHTING);
 	float ambientColor[]	= { 0.1f, 0.1f, 0.1f, 0.0f };
-	float diffuseColor[]	= { 1.0f, 1.0f, 1.0f, 0.0f };		
+	float diffuseColor[]	= { 1.0f, 1.0f, 1.0f, 1.0f };		
 	float specularColor[]	= { 0.0f, 0.0f, 0.0f, 0.0f };		
-	float position[]		= { 100.0f, 100.0f, 400.0f, 1.0f };		
+	float position[]		= { 1000.0f, 400.0f, 1500.0f, 1.0f };		
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientColor);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseColor);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
 	glLightfv(GL_LIGHT0, GL_POSITION, position);
 	glEnable(GL_LIGHT0);
 	
-	glClearColor(0.5, 0.5, 0.5, 1.0);		//”wŒiF‚ðÝ’è
+	glClearColor(0.8, 0.8, 0.8, 1.0);		//”wŒiF‚ðÝ’è
 }
 
 void KeyboardCallback(unsigned char key, int x, int y)
@@ -85,6 +85,11 @@ void KeyboardCallback(unsigned char key, int x, int y)
 				//robots[i].leftArm->addLocalForce(NxVec3(0, 0, 5000000));
 			}
 			break;
+		case '4':
+			for(int i = 0; i < n; i++){
+				robots[i].leftArm->addLocalTorque(NxVec3(50000000, 0, 0));
+				robots[i].rightArm->addLocalTorque(NxVec3(50000000, 0, 0));
+			}
 	}
 }
 
@@ -133,7 +138,7 @@ void MotionCallback(int x, int y)
 			qy.rotate(gDir);
 		}else if( gMouseButton[1] ){
 			//Move: Center Button Drag
-			gEye += 0.1f * (gViewY * dx - NxVec3(0, 1, 0) * dy);
+			gEye += 1.5f * (gViewY * dx - NxVec3(0, 1, 0) * dy);
 		}
 	}
 	gMouseX = x;
