@@ -13,6 +13,9 @@ void RenderCallback();
 void ReshapeCallback(int width, int height);
 void IdleCallback();
 
+//なぜか，NxVec3をuserDataとして渡そうとすると，怒られるので，
+//(void*に変換できないとか，void*からNxVec3に変換できないとかC2440)
+//自分で構造体作りましたよ～っと
 struct myDimension3{
 	int x;
 	int y;

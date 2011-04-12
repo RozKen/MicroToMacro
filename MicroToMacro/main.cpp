@@ -71,23 +71,32 @@ void CreateTumblingRobot(NxVec3 pos){
 	bodyDesc.setToDefault();
 	//Describe Sphere
 	NxSphereShapeDesc sphereDesc;
-	sphereDesc.radius = 20;
-	sphereDesc.localPose.t = NxVec3( 0, 90, 0);
+	sphereDesc.radius = 10;
+	sphereDesc.localPose.t = NxVec3( 0, 0, 0);
 	sphereDesc.userData = (void *)size_t(sphereDesc.radius);
-	//Describe Box
-	NxBoxShapeDesc boxDesc;
-	boxDesc.dimensions = NxVec3( 20.0f, 20.0f, 20.0f);
-	boxDesc.localPose.t = NxVec3( 0, 40, 0);
+	//Describe LeftArm
+	NxBoxShapeDesc leftArmDesc;
+	leftArmDesc.dimensions = NxVec3( 3, 25, 3);
+	leftArmDesc.localPose.t = NxVec3( -11.5, -7.5, 0);
 	myDimension3* myD = new myDimension3;
-	myD->x = boxDesc.dimensions.x;
-	myD->y = boxDesc.dimensions.y;
-	myD->z = boxDesc.dimensions.z;
-	//boxDesc.userData = (void *)(boxDesc.dimensions);
-	boxDesc.userData = (void *)myD;
+	myD->x = leftArmDesc.dimensions.x;
+	myD->y = leftArmDesc.dimensions.y;
+	myD->z = leftArmDesc.dimensions.z;
+	//leftArmDesc.userData = (void *)(leftArmDesc.dimensions);
+	leftArmDesc.userData = (void *)myD;
+	//Describe RightArm
+	NxBoxShapeDesc rightArmDesc;
+	rightArmDesc.dimensions = NxVec3( 3, 25, 3);
+	rightArmDesc.localPose.t = NxVec3( 11.5, -7.5, 0);
+	myD->x = rightArmDesc.dimensions.x;
+	myD->y = rightArmDesc.dimensions.y;
+	myD->z = rightArmDesc.dimensions.z;
+	rightArmDesc.userData = (void *)myD;
 	//Describe Actor
 	NxActorDesc actorDesc;
 	actorDesc.shapes.pushBack(&sphereDesc);
-	actorDesc.shapes.pushBack(&boxDesc);
+	actorDesc.shapes.pushBack(&leftArmDesc);
+	actorDesc.shapes.pushBack(&rightArmDesc);
 	actorDesc.body = &bodyDesc;
 	actorDesc.density = 10.0f;
 	actorDesc.globalPose.t = pos;
