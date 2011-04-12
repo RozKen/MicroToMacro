@@ -1,6 +1,7 @@
 #ifndef __myGLUT_h__
 #define __myGLUT_h__
 
+#include <vector>
 #include <GL/glut.h>		//Used for OpenGL (GLUT)
 #include <NxPhysics.h>	//Used for PhysX
 
@@ -22,8 +23,16 @@ struct myDimension3{
 	int z;
 };
 
+struct TumblingRobots{
+	NxActor *body;
+	NxActor *leftArm;
+	NxActor *rightArm;
+};
+
 void myGLBox(double x, double y, double z);
 void myGLBox(myDimension3* dimensions);
 void myGLCylinder(double radius, double height, int sides);
+
+extern std::vector<TumblingRobots> robots;
 
 #endif //__myGLUT_h__

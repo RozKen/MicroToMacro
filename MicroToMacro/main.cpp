@@ -9,19 +9,10 @@
 #include <NxPhysics.h>	//Used for PhysX
 #include <GL/glut.h>		//Used for OpenGL (GLUT)
 #include "myGLUT.h"	//Import Callback Functions for GLUT
+#include "main.h"
+
 #pragma comment(lib, "PhysXLoader.lib")
 //↑"プロジェクトのプロパティ>構成プロパティ>リンカ>入力>追加の依存ファイル>PhysXLoader.lib"の設定がしてないときに必要.
-	/*
-	 *	Prototype Declaration
-	 */
-void InitGLUT(int argc, char ** argv);
-bool InitNx();
-void CleanUpNx();
-bool InitScene();
-void CreateGroundPlane();
-void CreateBox(float w, float d, float h,float xInit, float yInit, float zInit);
-void CreateSphere(float r, float xInit, float yInit, float zInit);
-void CreateTumblingRobot(NxVec3 pos);
 
 	/*
 	 *	Global Variables
@@ -30,6 +21,7 @@ NxPhysicsSDK* pPhysicsSDK = NULL;	//PhysX
 NxScene* pScene = NULL;					//Scene
 NxVec3 DefaultGravity(0,-9.8,0);			//Gravity
 bool isSimulate = false;						//Flag for Simulation
+std::vector<TumblingRobots> robots;
 
 using namespace std;							//std名前空間を利用
 
@@ -52,6 +44,12 @@ void main(int argc, char ** argv){
 	cout << "Zoom: Right and Center Drag" << endl;
 	cout << "===Simulation Navigation===" << endl;
 	cout << "Simulation ON/OFF: Space Key" << endl;
+	cout << "===Object Creation===" << endl;
+	cout << "s: sphere, b: box, t: tumbling robot" << endl;
+	cout << "===Robot Manipulation===" << endl;
+	cout << "1: left arm, 2: right arm, 3: both arms" << endl;
+
+	cout << "MAX_Real" << NX_MAX_REAL <<endl;
 
 	/*
 	 *	Render the Scene for each Simulate Time Steps
@@ -64,46 +62,42 @@ void main(int argc, char ** argv){
 	 * @NxVec3 pos : Position Vector of this Robot
 	 * @return
 	 */
-void CreateTumblingRobot(NxVec3 pos){
+void CreateTumblingRobot(const NxVec3 pos){
 	if(pScene == NULL) return;
-	//Describe Body
-	NxBodyDesc bodyDesc;
-	bodyDesc.setToDefault();
-	//Describe Sphere
-	NxSphereShapeDesc sphereDesc;
-	sphereDesc.radius = 10;
-	sphereDesc.localPose.t = NxVec3( 0, 0, 0);
-	sphereDesc.userData = (void *)size_t(sphereDesc.radius);
-	//Describe LeftArm
-	NxBoxShapeDesc leftArmDesc;
-	leftArmDesc.dimensions = NxVec3( 3, 25, 3);
-	leftArmDesc.localPose.t = NxVec3( -11.5, -7.5, 0);
-	myDimension3* myD = new myDimension3;
-	myD->x = leftArmDesc.dimensions.x;
-	myD->y = leftArmDesc.dimensions.y;
-	myD->z = leftArmDesc.dimensions.z;
-	//leftArmDesc.userData = (void *)(leftArmDesc.dimensions);
-	leftArmDesc.userData = (void *)myD;
-	//Describe RightArm
-	NxBoxShapeDesc rightArmDesc;
-	rightArmDesc.dimensions = NxVec3( 3, 25, 3);
-	rightArmDesc.localPose.t = NxVec3( 11.5, -7.5, 0);
-	myD->x = rightArmDesc.dimensions.x;
-	myD->y = rightArmDesc.dimensions.y;
-	myD->z = rightArmDesc.dimensions.z;
-	rightArmDesc.userData = (void *)myD;
-	//Describe Actor
-	NxActorDesc actorDesc;
-	actorDesc.shapes.pushBack(&sphereDesc);
-	actorDesc.shapes.pushBack(&leftArmDesc);
-	actorDesc.shapes.pushBack(&rightArmDesc);
-	actorDesc.body = &bodyDesc;
-	actorDesc.density = 10.0f;
-	actorDesc.globalPose.t = pos;
-	NxActor*pActor = pScene->createActor( actorDesc );
-	//pActor->userData = (void *)size_t((int)20);
+	//NxActor* body = CreateSphere(15.0f, pos);
+	NxActor* body = CreateBox(NxVec3(15.0, 15.0, 15.0), pos);
+	body->setMass(5);
+	//body->setMass(15);
+	NxVec3 armDim = NxVec3(5, 30, 1.5);
+	NxVec3 leftArmLocalPos = NxVec3(-20, 0, 0);
+	NxVec3 rightArmLocalPos = NxVec3(20, 0, 0);
+	NxActor* leftArm = CreateBox(armDim, pos + leftArmLocalPos);
+	NxActor* rightArm = CreateBox(armDim, pos + rightArmLocalPos);
+	leftArm->setMass(1);
+	rightArm->setMass(1);
+	//Describe Revolute Joint
+	NxRevoluteJointDesc revoluteDesc1;
+	revoluteDesc1.setToDefault();
+	revoluteDesc1.actor[0] = body;
+	revoluteDesc1.actor[1] = leftArm;
+	revoluteDesc1.setGlobalAnchor(pos + NxVec3(-10, 0, 0));
+	revoluteDesc1.setGlobalAxis(NxVec3(1, 0, 0));
+	NxJoint *joint1 = pScene->createJoint(revoluteDesc1);
+
+	NxRevoluteJointDesc revoluteDesc2;
+	revoluteDesc2.setToDefault();
+	revoluteDesc2.actor[0] = body;
+	revoluteDesc2.actor[1] = rightArm;
+	revoluteDesc2.setGlobalAnchor(pos + NxVec3(10, 0, 0));
+	revoluteDesc2.setGlobalAxis(NxVec3( 1, 0, 0 ) );
+	NxJoint *join2 = pScene->createJoint(revoluteDesc2);
+	
+	TumblingRobots robot;
+	robot.body = body;
+	robot.leftArm = leftArm;
+	robot.rightArm = rightArm;
+	robots.push_back(robot);
 	return;
-	//TODO/////////////////////////////////////////////////////////////
 }
 	/**
 	 * CreateSphere(float r, float xInit, float yInit, float zInit)
@@ -111,9 +105,9 @@ void CreateTumblingRobot(NxVec3 pos){
 	 * @float xInit: Initial Position on X
 	 * @float yInit: Initial Position on Y
 	 * @float zInit: Initial Position on Z
-	 * @return
+	 * @return pActor: Pointer to Created Actor
 	 */
-void CreateSphere(float r, float xInit, float yInit, float zInit){
+NxActor* CreateSphere(float r, float xInit, float yInit, float zInit){
 	NxActorDesc actorDesc;
 	NxBodyDesc bodyDesc;
 	NxSphereShapeDesc sphereDesc;
@@ -122,18 +116,23 @@ void CreateSphere(float r, float xInit, float yInit, float zInit){
 	actorDesc.setToDefault();
 	bodyDesc.setToDefault();
 	sphereDesc.setToDefault();
-
-	bodyDesc.angularDamping = 0.5f;	//転がり摩擦係数
+	//bodyDesc.angularDamping = 0.5f;	//転がり摩擦係数
 
 	sphereDesc.radius = r;									//球の半径を指定
 	sphereDesc.userData = (void *)size_t(sphereDesc.radius);
 	actorDesc.shapes.pushBack(&sphereDesc);	//球をアクターに追加
 	actorDesc.body = &bodyDesc;	//動的情報を指定
-	actorDesc.density = 100.0f;			//質量密度 (kg/m^3)
+	actorDesc.density = 30000;//7874.0f;		//密度7874 kg/m^3 : 鉄の密度
 	actorDesc.globalPose.t = NxVec3(xInit, yInit, zInit);	//Scene上の位置
 	//Set userData to NULL if you are not doing anyting with it.
 	NxActor*pActor = pScene->createActor( actorDesc );
+	return pActor;
 }
+
+NxActor* CreateSphere(float r, NxVec3 pos){
+	return CreateSphere(r, pos.x, pos.y, pos.z);
+}
+
 	/**
 	 * CreateBox(float w, float d, float h,float xInit, float yInit, float zInit)
 	 * @float w: width of the box
@@ -142,24 +141,33 @@ void CreateSphere(float r, float xInit, float yInit, float zInit){
 	 * @float xInit: Initial Position on X
 	 * @float yInit: Initial Position on Y
 	 * @float zInit: Initial Position on Z
-	 * @return
+	 * @return pActor: Pointer to Created Actor
 	 */
-void CreateBox(float w, float d, float h,float xInit, float yInit, float zInit){
+NxActor* CreateBox(float w, float d, float h,float xInit, float yInit, float zInit){
 	/*
 	 *	Create a Box Actor
 	 * Dynamic Actor: Rigid Bodies
 	 */
 	//Create a Body Descriptor
 	NxBodyDesc bodyDesc;					//Box用 Body Descriptor
-	bodyDesc.angularDamping = 0.5f;	//回転減衰係数????
-	bodyDesc.linearVelocity = NxVec3 (-30, -10, -10); //初期速度はX軸方向に1
 	
 	//The Actor Descriptor
 	NxActorDesc actorDesc;
-	actorDesc.body = &bodyDesc;
 	
 	//Box Shape Descriptor
 	NxBoxShapeDesc boxDesc;
+
+	//デフォルト値で初期化 (クリア)
+	actorDesc.setToDefault();
+	bodyDesc.setToDefault();
+	boxDesc.setToDefault();
+
+	//bodyDesc.angularDamping = 0.5f;	//回転減衰係数????
+	//bodyDesc.linearVelocity = NxVec3 (-30, -10, -10); //初期速度はX軸方向に1
+	bodyDesc.linearDamping = 0.1f;
+
+	actorDesc.body = &bodyDesc;
+
 	boxDesc.dimensions = NxVec3( w, d, h );	//20.0 x 20.0 x 20.0の直方体
 	myDimension3* myD = new myDimension3;
 	myD->x = boxDesc.dimensions.x;
@@ -168,11 +176,17 @@ void CreateBox(float w, float d, float h,float xInit, float yInit, float zInit){
 	//boxDesc.userData = (void *)(boxDesc.dimensions);	//wの2倍を一辺の長さとして表示
 	boxDesc.userData = (void *)myD;
 	actorDesc.shapes.pushBack( &boxDesc );	//ActorにBodyを登録
-	actorDesc.density = 100.0f;	//密度10.0
+	actorDesc.density = 100;//7874.0f;	//密度7874 kg/m^3 : 鉄の密度
 	actorDesc.globalPose.t = NxVec3( xInit, yInit, zInit);		//初期位置(10.0, 10.0, 10.0)
 	
 	//Set userData to NULL if you are not doing anyting with it.
-	NxActor*pActor = pScene->createActor( actorDesc );
+	NxActor* pActor = pScene->createActor( actorDesc );
+	return pActor;
+}
+
+NxActor* CreateBox(NxVec3 dimensions, NxVec3 pos){
+	return CreateBox(dimensions.x, dimensions.y, dimensions.z,
+		pos.x, pos.y, pos.z);
 }
 	/**
 	 * CreateGroundPlane(): Create Ground Plane

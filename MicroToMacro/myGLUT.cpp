@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include "myGLUT.h"		//Prototype Declarations
+#include "main.h"
 //glut.hを後ろに置かないと，exit関数についてエラーが生じる.
 //#pragma comment(lib, "glut32.lib")
 // Rendering
@@ -43,6 +44,7 @@ void MyGLInit(){
 
 void KeyboardCallback(unsigned char key, int x, int y)
 {
+	int n = robots.size();
 	switch(key)
 	{
 		case 27:			//ESCキーが押されたら
@@ -50,6 +52,38 @@ void KeyboardCallback(unsigned char key, int x, int y)
 			break;
 		case 32:			//Spaceキーが押されたら
 			isSimulate = !isSimulate;		//Simulate状態をON/OFFする
+			break;
+		case 's':
+			CreateSphere(2.5f, 0, 3, 2.5f);
+			break;
+		case 'b':
+			CreateBox(5,5,5, 2.5f, 2.5f, -10);
+			break;
+		case 't':
+			CreateTumblingRobot(NxVec3(-20, 30, -20));
+				break;
+		//////////Parameter調整中///////////////////
+		case '1':
+			for(int i = 0; i < n; i++){
+				robots[i].leftArm->addLocalTorque(NxVec3(50000000, 0, 0));
+				//robots[i].leftArm->addLocalTorque(NxVec3(50000000000, 0, 0));
+				//robots[i].leftArm->addLocalForce(NxVec3(0, 0, 5000000));
+			}
+			break;
+		case '2':
+			for(int i = 0; i < n; i++){
+				robots[i].rightArm->addLocalTorque(NxVec3(5000000, 0, 0));
+				//robots[i].rightArm->addLocalTorque(NxVec3(50000000000, 0, 0));
+			}
+			break;
+		case '3':
+			for(int i = 0; i < n; i++){
+				robots[i].leftArm->addLocalTorque(NxVec3(500000, 0, 0));
+				robots[i].rightArm->addLocalTorque(NxVec3(500000, 0, 0));
+				//robots[i].leftArm->addLocalTorque(NxVec3(50000000000, 0, 0));
+				//robots[i].rightArm->addLocalTorque(NxVec3(50000000000, 0, 0));
+				//robots[i].leftArm->addLocalForce(NxVec3(0, 0, 5000000));
+			}
 			break;
 	}
 }
@@ -196,7 +230,7 @@ void RenderCallback()
 						shape->getLocalPose().getColumnMajor44(glMat2);
 						glMultMatrixf(glMat2);
 						glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-						glutSolidSphere(size_t(shape->userData),10, 10);
+						glutSolidSphere(size_t(shape->userData),16, 16);
 					}
 					glPopMatrix();
 
@@ -209,7 +243,7 @@ void RenderCallback()
 						glMultMatrixf(glMat2);
 						glDisable(GL_LIGHTING);
 						glColor4f(0.1f, 0.2f, 0.3f, 1.0f);
-						glutSolidSphere(size_t(shape->userData),10, 10);
+						glutSolidSphere(size_t(shape->userData),16, 16);
 						glEnable(GL_LIGHTING);
 					}
 					glPopMatrix();
