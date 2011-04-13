@@ -129,7 +129,7 @@ NxActor* CreateSphere(float r, float xInit, float yInit, float zInit){
 	sphereDesc.userData = (void *)size_t(sphereDesc.radius);
 	actorDesc.shapes.pushBack(&sphereDesc);	//球をアクターに追加
 	actorDesc.body = &bodyDesc;	//動的情報を指定
-	actorDesc.density = 30000;//7874.0f;		//密度7874 kg/m^3 : 鉄の密度
+	actorDesc.density = 3000;//7874.0f;		//密度7874 kg/m^3 : 鉄の密度
 	actorDesc.globalPose.t = NxVec3(xInit, yInit, zInit);	//Scene上の位置
 	//Set userData to NULL if you are not doing anyting with it.
 	NxActor*pActor = pScene->createActor( actorDesc );
